@@ -21,8 +21,6 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    git remote add origin https://github.com/OchiengJoel/Spring-Boot-Security.git
-
 //    @GetMapping("/company/{companyId}/users/list")
 //    public ResponseEntity<List<User>> getUsersByCompanyId(@PathVariable Long companyId) {
 //        List<User> users = userService.getUsersByCompanyId(companyId);

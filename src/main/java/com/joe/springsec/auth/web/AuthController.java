@@ -14,6 +14,7 @@ import com.joe.springsec.auth.repo.UserRepository;
 import com.joe.springsec.auth.services.UserDetailsImpl;
 import com.joe.springsec.company.model.Company;
 import com.joe.springsec.company.repo.CompanyRepo;
+import com.joe.springsec.email.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -45,6 +46,9 @@ public class AuthController {
 
     @Autowired
     RoleRepository roleRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     CompanyRepo companyRepo;
@@ -137,16 +141,11 @@ public class AuthController {
 
         user.setRoles(roles);
 
-//        // Assign companies to the new user (assuming the signup request has a list of company IDs)
-//        List<Long> companyIds = signUpRequest.getCompanyIds();
-//        if (companyIds != null) {
-//            // Logic to assign companies to the user (user.setCompanies or other method)
-//            // Example:
-//            // Set<Company> companies = companyRepository.findAllById(companyIds);
-//            // user.setCompanies(companies);
-//        }
-
+        // Save the user
         userRepository.save(user);
+
+        // Send the welcome email after the user has been saved
+        emailService.sendUserCreationEmail(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
