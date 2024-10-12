@@ -35,54 +35,47 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
-
 public class AuthController {
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
     private EmailService emailService;
 
     @Autowired
-    CompanyRepo companyRepo;
+    private CompanyRepo companyRepo;
 
     @Autowired
-    PasswordEncoder encoder;
+    private PasswordEncoder encoder;
 
     @Autowired
-    JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
-        // Authenticate the user
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // Get authenticated user details
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        // Get the companyId associated with the user (assuming it's part of userDetails)
-        Long companyId = userDetails.getCompanyIds().isEmpty() ? null : userDetails.getCompanyIds().get(0); // Adjust if needed
+        // Send login notification email using your EmailService
+        emailService.sendLoginNotificationEmail(userDetails);  // This should work fine
 
-        // Generate JWT cookie including companyId
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails, companyId); // Pass companyId
+        Long companyId = userDetails.getCompanyIds().isEmpty() ? null : userDetails.getCompanyIds().get(0);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails, companyId);
 
-        // Get the roles of the user
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        // Add the company IDs to the response
         List<Long> companyIds = userDetails.getCompanyIds();
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
@@ -91,12 +84,12 @@ public class AuthController {
                         userDetails.getEmail(),
                         roles,
                         companyIds,
-                        jwtCookie.getValue())); // Include company IDs in the response
+                        jwtCookie.getValue()));
     }
+
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        // Check if username or email already exists
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
         }
@@ -105,12 +98,10 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        // Assign roles to the new user
         Set<String> strRoles = signUpRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
@@ -140,11 +131,9 @@ public class AuthController {
         }
 
         user.setRoles(roles);
-
-        // Save the user
         userRepository.save(user);
 
-        // Send the welcome email after the user has been saved
+        // Send the welcome email after the user has been saved, with company-specific email configuration
         emailService.sendUserCreationEmail(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

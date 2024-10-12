@@ -34,20 +34,16 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-
     // Endpoint to add a role to a user
     @PostMapping("/{userId}/roles/add")
     public ResponseEntity<User> addRoleToUser(@PathVariable Long userId, @RequestParam String roleName) {
         User updatedUser = userService.addRoleToUser(userId, roleName);
         return ResponseEntity.ok(updatedUser);
     }
-
     // Endpoint to remove a role from a user
     @DeleteMapping("/{userId}/roles/remove")
     public ResponseEntity<User> removeRoleFromUser(@PathVariable Long userId, @RequestParam String roleName) {
         User updatedUser = userService.removeRoleFromUser(userId, roleName);
         return ResponseEntity.ok(updatedUser);
     }
-
-
 }
