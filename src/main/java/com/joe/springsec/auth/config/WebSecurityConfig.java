@@ -17,17 +17,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
 @Configuration
 @EnableMethodSecurity
 public class WebSecurityConfig {
-
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
+    @Autowired
+    private RateLimiterInterceptor rateLimiterInterceptor;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -56,22 +59,61 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session -> session
-                        // Keep using stateless session, JWT token manages session-like behavior
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/auth/**").permitAll()
-                        .antMatchers("/api/test/**").permitAll()
-                        .anyRequest().authenticated()
-                );
+//        http.csrf(csrf -> csrf.disable())
+//                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+//                .sessionManagement(session -> session
+//                        // Keep using stateless session, JWT token manages session-like behavior
+//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(auth -> auth
+//                        .antMatchers("/api/auth/**").permitAll()
+//                        .antMatchers("/api/test/**").permitAll()
+//                        .anyRequest().authenticated()
+//                );
+//
+//        http.authenticationProvider(authenticationProvider());
+//
+//        // Add JWT token filter before username and password authentication filter
+//        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        http.authenticationProvider(authenticationProvider());
+//        http.csrf(csrf -> csrf.disable())
+//                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+//                .sessionManagement(session -> session
+//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(auth -> auth
+//                        .antMatchers("/api/auth/**").permitAll()
+//                        .antMatchers("/api/admin/**").hasRole("ADMIN")
+//                        .antMatchers("/api/company/**").hasAnyRole("ADMIN", "MODERATOR")
+//                        .antMatchers("/api/user/**").hasRole("USER")
+//                        .anyRequest().authenticated()
+//                );
+//
+//        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+//        return http.build();
 
-        // Add JWT token filter before username and password authentication filter
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+            http.csrf(csrf -> csrf.disable())
+                    .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                    .sessionManagement(session -> session
+                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .antMatchers("/api/auth/**").permitAll()
+                            .antMatchers("/api/admin/**").hasRole("ADMIN")
+                            .antMatchers("/api/company/**").hasAnyRole("ADMIN", "MODERATOR")
+                            .antMatchers("/api/user/**").hasRole("USER")
+                            .anyRequest().authenticated()
+                    );
+            http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        }
+
+
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimiterInterceptor)
+                .addPathPatterns("/api/auth/signin");  // Apply only to the /signin endpoint
     }
-}
+
+    }
+
+
+
+

@@ -87,7 +87,6 @@ public class AuthController {
                         jwtCookie.getValue()));
     }
 
-
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -132,10 +131,8 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
-
         // Send the welcome email after the user has been saved, with company-specific email configuration
         emailService.sendUserCreationEmail(user);
-
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
@@ -145,7 +142,6 @@ public class AuthController {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new MessageResponse("You've been signed out!"));
     }
-
 
     @PostMapping("/admin/createUser")
     public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest signUpRequest) {
@@ -179,26 +175,9 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
-
         return ResponseEntity.ok(new MessageResponse("User created successfully!"));
     }
 
-
-//    @PostMapping("/admin/assignCompanies")
-//    public ResponseEntity<?> assignCompanies(@Valid @RequestBody AssignCompaniesRequest request) {
-//        // Find the user by ID
-//        User user = userRepository.findById(request.getUserId())
-//                .orElseThrow(() -> new RuntimeException("Error: User not found."));
-//
-//        // Fetch companies by IDs
-//        List<Company> companies = companyRepo.findAllById(request.getCompanyIds());
-//
-//        // Assign companies to the user
-//        user.setCompanies(new HashSet<>(companies)); // Assuming User has a set of companies
-//        userRepository.save(user);
-//
-//        return ResponseEntity.ok(new MessageResponse("Companies assigned successfully!"));
-//    }
 
     @PostMapping("/admin/assignCompanies")
     public ResponseEntity<?> assignCompanies(@Valid @RequestBody AssignCompaniesRequest request) {
@@ -239,98 +218,3 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("Companies assigned successfully!"));
     }
 }
-//public class AuthController {
-//
-//    @Autowired
-//    AuthenticationManager authenticationManager;
-//    @Autowired
-//    UserRepository userRepository;
-//    @Autowired
-//    RoleRepository roleRepository;
-//    @Autowired
-//    PasswordEncoder encoder;
-//    @Autowired
-//    JwtUtils jwtUtils;
-//
-//    @PostMapping("/signin")
-//    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-//
-//        Authentication authentication = authenticationManager
-//                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//
-//        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//
-//        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-//
-//        List<String> roles = userDetails.getAuthorities().stream()
-//                .map(item -> item.getAuthority())
-//                .collect(Collectors.toList());
-//
-//        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-//                .body(new UserInfoResponse(userDetails.getId(),
-//                        userDetails.getUsername(),
-//                        userDetails.getEmail(),
-//                        roles));
-//    }
-//
-//    @PostMapping("/signup")
-//    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-//        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-//            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
-//        }
-//
-//        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-//            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
-//        }
-//
-//        // Create new user's account
-//        User user = new User(signUpRequest.getUsername(),
-//                signUpRequest.getEmail(),
-//                encoder.encode(signUpRequest.getPassword()));
-//
-//        Set<String> strRoles = signUpRequest.getRole();
-//        Set<Role> roles = new HashSet<>();
-//
-//        if (strRoles == null) {
-//            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-//                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//            roles.add(userRole);
-//        } else {
-//            strRoles.forEach(role -> {
-//                switch (role) {
-//                    case "admin":
-//                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-//                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//                        roles.add(adminRole);
-//
-//                        break;
-//                    case "mod":
-//                        Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-//                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//                        roles.add(modRole);
-//
-//                        break;
-//                    default:
-//                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-//                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//                        roles.add(userRole);
-//                }
-//            });
-//        }
-//
-//        user.setRoles(roles);
-//        userRepository.save(user);
-//
-//        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-//    }
-//
-//    @PostMapping("/signout")
-//    public ResponseEntity<?> logoutUser() {
-//        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
-//        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-//                .body(new MessageResponse("You've been signed out!"));
-//    }
-//}
-

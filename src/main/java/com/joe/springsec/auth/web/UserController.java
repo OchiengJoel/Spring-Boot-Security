@@ -5,7 +5,6 @@ import com.joe.springsec.auth.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -20,12 +19,6 @@ public class UserController {
         List<User> users = userService.getUsersByCompanyId(companyId);
         return ResponseEntity.ok(users);
     }
-
-//    @GetMapping("/company/{companyId}/users/list")
-//    public ResponseEntity<List<User>> getUsersByCompanyId(@PathVariable Long companyId) {
-//        List<User> users = userService.getUsersByCompanyId(companyId);
-//        return ResponseEntity.ok(users);
-//    }
 
     // Endpoint to list all users
     @GetMapping
