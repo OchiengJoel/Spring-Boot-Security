@@ -3,10 +3,14 @@ package com.joe.springsec.auth.web;
 import com.joe.springsec.auth.dtos.PermissionDTO;
 import com.joe.springsec.auth.dtos.PermissionMapper;
 import com.joe.springsec.auth.models.Permission;
+import com.joe.springsec.auth.payload.response.ErrorResponse;
+import com.joe.springsec.auth.payload.response.PermissionNotFoundException;
+import com.joe.springsec.auth.payload.response.UserNotFoundException;
 import com.joe.springsec.auth.services.PermissionService;
 import com.joe.springsec.auth.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +35,7 @@ public class PermissionController {
     @PostMapping
     public ResponseEntity<PermissionDTO> createPermission(@Valid @RequestBody PermissionDTO permissionDTO) {
         Permission createdPermission = permissionService.createPermission(PermissionMapper.toEntity(permissionDTO));
-        return ResponseEntity.status(201).body(PermissionMapper.toDTO(createdPermission));
+        return ResponseEntity.status(HttpStatus.CREATED).body(PermissionMapper.toDTO(createdPermission));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,22 +60,33 @@ public class PermissionController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{userId}/permissions/{permissionName}")
-    public ResponseEntity<Void> assignPermissionToUser(@PathVariable Long userId, @PathVariable String permissionName) {
-        userService.addPermissionToUser(userId, permissionName);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> assignPermissionToUser(@PathVariable Long userId, @PathVariable String permissionName) {
+        try {
+            userService.addPermissionToUser(userId, permissionName);
+            return ResponseEntity.ok().build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("User not found", HttpStatus.NOT_FOUND.value()));
+        } catch (PermissionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Permission not found", HttpStatus.NOT_FOUND.value()));
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}/permissions/{permissionName}")
-    public ResponseEntity<Void> removePermissionFromUser(@PathVariable Long userId, @PathVariable String permissionName) {
-        userService.removePermissionFromUser(userId, permissionName);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> removePermissionFromUser(@PathVariable Long userId, @PathVariable String permissionName) {
+        try {
+            userService.removePermissionFromUser(userId, permissionName);
+            return ResponseEntity.ok().build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("User not found", HttpStatus.NOT_FOUND.value()));
+        } catch (PermissionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Permission not found", HttpStatus.NOT_FOUND.value()));
+        }
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<PermissionDTO>> getPermissionsForUser(@PathVariable Long userId) {
         List<Permission> userPermissions = userService.getUserPermissions(userId);
-        // Use Collectors.toList() instead of Stream.toList()
         return ResponseEntity.ok(userPermissions.stream().map(PermissionMapper::toDTO).collect(Collectors.toList()));
     }
 }

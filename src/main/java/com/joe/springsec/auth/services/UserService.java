@@ -30,6 +30,11 @@ public class UserService {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
+
     // Check user permission
     public boolean hasPermission(User user, String permissionName) {
         // Check individual user permissions first

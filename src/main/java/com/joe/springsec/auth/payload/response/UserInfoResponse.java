@@ -8,19 +8,20 @@ public class UserInfoResponse {
     private String username;
     private String email;
     private List<String> roles;
+    //private List<String> permissions;
     private List<Long> companyIds;
     private String accessToken;
 
-    public UserInfoResponse(Long id, String username, String email, List<String> roles,List<Long> companyIds, String accessToken) {
+//    public UserInfoResponse(Long id, String username, String email, List<String> roles, List<String> permissions, List<Long> companyIds, String accessToken) {
+      public UserInfoResponse(Long id, String username, String email, List<String> roles, List<Long> companyIds, String accessToken) {
+
         this.id = id;
         this.username = username;
         this.email = email;
         this.roles = roles;
+       // this.permissions = permissions;
         this.companyIds = companyIds;
         this.accessToken = accessToken;
-    }
-
-    public UserInfoResponse() {
     }
 
     public Long getId() {
@@ -54,6 +55,14 @@ public class UserInfoResponse {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
+
+//    public List<String> getPermissions() {
+//        return permissions;
+//    }
+//
+//    public void setPermissions(List<String> permissions) {
+//        this.permissions = permissions;
+//    }
 
     public List<Long> getCompanyIds() {
         return companyIds;

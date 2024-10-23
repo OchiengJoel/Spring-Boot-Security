@@ -10,27 +10,27 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "cms_permissions")
-public class Permission implements Serializable {
+    @Data
+    @Entity
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Table(name = "cms_permissions")
+    public class Permission implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name; // e.g., CREATE, READ, UPDATE, DELETE
+        @Column(nullable = false, unique = true)
+        private String name; // e.g., CREATE, READ, UPDATE, DELETE
 
-    @Column
-    private String description;
+        @Column
+        private String description;
 
-    @ManyToMany(mappedBy = "permissions")
-    private Set<Role> roles = new HashSet<>();
+        @ManyToMany(mappedBy = "permissions")
+        private Set<Role> roles = new HashSet<>();
 
-}
+    }
 
 
 

@@ -40,10 +40,8 @@ public class WebSecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-
         return authProvider;
     }
 
@@ -57,8 +55,39 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder(10);
     }
 
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+            http.csrf(csrf -> csrf.disable())
+                    .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                    .sessionManagement(session -> session
+                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .antMatchers("/api/auth/signin/**").permitAll()
+                            .antMatchers("/api/admin/**").hasRole("ADMIN")
+                            .antMatchers("/api/company/**").hasAnyRole("ADMIN", "MODERATOR")
+                            .antMatchers("/api/user/**").hasRole("USER")
+                            .antMatchers("/api/admin/**").hasAuthority("ADMIN") // Check for ADMIN authority
+                            .antMatchers("/api/company/**").hasAnyAuthority("ADMIN", "MODERATOR") // Check for ADMIN or MODERATOR authority
+                            .antMatchers("/api/user/**").hasAuthority("VIEW_USER") // Specific permission for VIEW_USER
+                            .antMatchers("/api/user/**").hasAuthority("ADD_USER")
+                            .antMatchers("/api/auth/signup/**").hasAuthority("ADD_USER")
+
+                            .anyRequest().authenticated()
+                    );
+            http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        }
+
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimiterInterceptor)
+                .addPathPatterns("/api/auth/signin");  // Apply only to the /signin endpoint
+    }
+    }
+
+
 //        http.csrf(csrf -> csrf.disable())
 //                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
 //                .sessionManagement(session -> session
@@ -89,30 +118,6 @@ public class WebSecurityConfig {
 //
 //        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 //        return http.build();
-
-
-            http.csrf(csrf -> csrf.disable())
-                    .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                    .sessionManagement(session -> session
-                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(auth -> auth
-                            .antMatchers("/api/auth/**").permitAll()
-                            .antMatchers("/api/admin/**").hasRole("ADMIN")
-                            .antMatchers("/api/company/**").hasAnyRole("ADMIN", "MODERATOR")
-                            .antMatchers("/api/user/**").hasRole("USER")
-                            .anyRequest().authenticated()
-                    );
-            http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-            return http.build();
-        }
-
-
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(rateLimiterInterceptor)
-                .addPathPatterns("/api/auth/signin");  // Apply only to the /signin endpoint
-    }
-
-    }
 
 
 
